@@ -4,6 +4,22 @@ orbs:
   slack: circleci/slack@4.10.1
   # aws-cli: circleci/aws-cli@2.0.3
 
+commands:
+
+  commands:
+    notify_on_fail:
+    steps:
+      - slack/notify:
+          event: fail
+          channel: C03PRUM60HG
+          template: basic_fail_1
+
+    notify_on_success:
+    steps:
+      - slack/notify:
+          channel: C03PRUM60HG
+          event: pass
+          template: success_tagged_deploy_1
 
 # commands:
 #   destroy-environment:
@@ -57,10 +73,9 @@ jobs:
           paths: [frontend/node_modules]
           key: frontend-build
           
-      - slack/notify:
-          channel: C03PRUM60HG
-          event: pass
-          template: success_tagged_deploy_1
+      - notify_on_fail
+      - notify_on_success
+
 
 
   build-backend:
@@ -124,10 +139,7 @@ jobs:
             npm update
             npm audit fix --audit-level=critical
 
-      - slack/notify:
-          channel: C03PRUM60HG
-          event: fail
-          template: basic_fail_1
+      - notify_on_slack
 
 
   scan-backend:
@@ -140,44 +152,45 @@ jobs:
       - run:
           name: Run backend Audit
           command: |
-            exit 1
-            # cd backend
-            # npm i
-            # npm audit fix --audit-level=critical
+            cd backend
+            npm i
+            npm audit fix --audit-level=critical
 
-#   deploy-infrastructure:
-#     docker:
-#       # Docker image here that supports AWS CLI
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Ensure back-end infrastructure exists
-#           command: |
-#             aws cloudformation deploy \
-#               --template-file .circleci/files/backend.yml \
-#               #--tags project=your-tag \
-#               # --stack-name "your back-end stack name with workflow id" \
-#               # --parameter-overrides ID="your workflow id"  
-#               exit 1
-#       - run:
-#           name: Ensure front-end infrastructure exist
-#           command: |
-#             aws cloudformation deploy \
-#               --template-file .circleci/files/frontend.yml \
-#               #--tags project=your-tag \
-#               # --stack-name "your front-end stack name with workflow id" \
-#               # --parameter-overrides ID="your workflow id"  
-#               exit 1
-#       - run:
-#           name: Add back-end ip to ansible inventory
-#           command: |
-#             # Your code here
-#             exit 1
-#       - persist_to_workspace:
-#           root: ~/
-#           paths:
-#             - project/.circleci/ansible/inventory.txt
-#       # Here's where you will add some code to rollback on failure      
+      - notify_on_slack
+
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      # Checkout code from git
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              #--tags project=your-tag \
+              # --stack-name "your back-end stack name with workflow id" \
+              # --parameter-overrides ID="your workflow id"  
+              exit 1
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              #--tags project=your-tag \
+              # --stack-name "your front-end stack name with workflow id" \
+              # --parameter-overrides ID="your workflow id"  
+              exit 1
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            # Your code here
+            exit 1
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      # Here's where you will add some code to rollback on failure      
 
 #   configure-infrastructure:
 #     docker:
