@@ -4,22 +4,22 @@ orbs:
   slack: circleci/slack@4.10.1
   # aws-cli: circleci/aws-cli@2.0.3
 
-commands:
+# commands:
 
-  commands:
-    notify_on_fail:
-    steps:
-      - slack/notify:
-          event: fail
-          channel: C03PRUM60HG
-          template: basic_fail_1
+  # commands:
+  #   notify_on_fail:
+  #   steps:
+  #     - slack/notify:
+  #         event: fail
+  #         channel: C03PRUM60HG
+  #         template: basic_fail_1
 
-    notify_on_success:
-    steps:
-      - slack/notify:
-          channel: C03PRUM60HG
-          event: pass
-          template: success_tagged_deploy_1
+  #   notify_on_success:
+  #   steps:
+  #     - slack/notify:
+  #         channel: C03PRUM60HG
+  #         event: pass
+  #         template: success_tagged_deploy_1
 
 # commands:
 #   destroy-environment:
