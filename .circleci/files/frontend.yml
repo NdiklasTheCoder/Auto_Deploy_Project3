@@ -10,7 +10,7 @@ Resources:
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "UdaPeople-${WorkflowID}"
+      BucketName: !Sub "Udapeople-${WorkflowID}"
       AccessControl: PublicRead
       WebsiteConfiguration:
         IndexDocument: index.html

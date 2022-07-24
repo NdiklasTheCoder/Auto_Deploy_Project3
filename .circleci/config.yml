@@ -183,16 +183,16 @@ jobs:
               --tags project=UdaPeople-${CIRCLE_WORKFLOW_ID:0:6} \
               --stack-name UdaPeople-frontend-${CIRCLE_WORKFLOW_ID:0:6} \
               --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:6}  
-      # - run:
-      #     name: Add back-end ip to ansible inventory
-      #     command: |
-      #       # Your code here
-      #       exit 1
-      # - persist_to_workspace:
-      #     root: ~/
-      #     paths:
-      #       - project/.circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure      
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            # Your code here
+            exit 1
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      Here's where you will add some code to rollback on failure      
 
 #   configure-infrastructure:
 #     docker:
