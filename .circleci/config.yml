@@ -21,18 +21,28 @@ orbs:
   #         event: pass
   #         template: success_tagged_deploy_1
 
-# commands:
-#   destroy-environment:
-#     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-#     parameters:
-#       # Add parameter here   
-#     steps:
-#       - run:
-#           name: Destroy environments
-#           when: on_fail
-#           command: |
-#             # Your code here
-#             exit 1
+commands:
+  destroy-environment:
+    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    steps:
+      - run:
+          name: Install AWS CLI if not Exist
+          when: on_fail
+          command: |
+            if ! [ -x "$(command -v aws)" ]; then
+            pip install awscli
+            else
+            echo "AWS CLI already installed"
+            fi
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+            
+            aws cloudformation delete-stack --stack-name UdaPeople-backend-${CIRCLE_WORKFLOW_ID:0:6} --region=$AWS_REGION
+            aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID:0:6} --force --region=$AWS_REGION
+            aws cloudformation delete-stack --stack-name UdaPeople-frontend-${CIRCLE_WORKFLOW_ID:0:6} --region=$AWS_REGION
+            aws cloudformation delete-stack --stack-name udapeople-cloudfront --region=$AWS_REGION
 
 #   revert-migrations:
 #     description: Revert the last migration if successfully run in the current workflow.
