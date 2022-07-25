@@ -24,6 +24,10 @@ orbs:
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    parameters:
+      # Add parameter here
+      WorkflowId:
+        type: string
     steps:
       - run:
           name: Install AWS CLI if not Exist
@@ -38,7 +42,16 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            
+
+            aws s3 rm s3://udapeople-$(<<parameters.WorkflowId>>:0:5) --recursive
+            aws cloudformation delete-stack \
+              --stack-name starter-frontend-<<parameters.WorkflowId>>
+            aws cloudformation delete-stack \
+              --stack-name udapeople-backend-<<parameters.WorkflowId>>
+            aws s3 rm s3://udapeople-<<parameters.WorkflowId>> --recursive
+            aws cloudformation delete-stack \
+              --stack-name udapeople-frontend-<<parameters.WorkflowId>>
+
             aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:6} --region=$AWS_REGION
             aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID:0:6} --force --region=$AWS_REGION
             aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:6} --region=$AWS_REGION
@@ -203,8 +216,8 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
       # Here's where you will add some code to rollback on failure
-      # - destroy-environment:
-      #     WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}
+      - destroy-environment:
+          WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}
 
       # - run:
       #     name: Add back-end ip to ansible inventory
