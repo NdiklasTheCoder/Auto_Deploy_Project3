@@ -43,10 +43,21 @@ commands:
           when: on_fail
           command: |
             
-            aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:6} --region=$AWS_REGION
-            aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID:0:6} --force --region=$AWS_REGION
-            aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:6} --region=$AWS_REGION
-            aws cloudformation delete-stack --stack-name udapeople-cloudfront --region=$AWS_REGION
+            echo "Destroying environment: << parameters.WorkflowId >>"
+            aws cloudformation delete-stack \
+              --stack-name prometheus-<<parameters.WorkflowId>>
+            aws cloudformation delete-stack \
+              --stack-name cloudfront-<<parameters.WorkflowId>>
+            aws cloudformation delete-stack \
+              --stack-name database-<<parameters.WorkflowId>>
+            aws s3 rm s3://udapeople-$(<<parameters.WorkflowId>>:0:5) --recursive
+            aws cloudformation delete-stack \
+              --stack-name starter-frontend-<<parameters.WorkflowId>>
+            aws cloudformation delete-stack \
+              --stack-name udapeople-backend-<<parameters.WorkflowId>>
+            aws s3 rm s3://udapeople-<<parameters.WorkflowId>> --recursive
+            aws cloudformation delete-stack \
+              --stack-name udapeople-frontend-<<parameters.WorkflowId>>
 
 
 
@@ -308,8 +319,8 @@ jobs:
             unzip -qq awscliv2.zip
             sudo ./aws/install
             # apk add --update --no-cache tar gzip nodejs npm aws-cli curl
-      - restore_cache:
-          keys: [backend-build]
+      # - restore_cache:
+      #     keys: [backend-build]
       - attach_workspace:
           at: ~/
       - run:
@@ -321,7 +332,7 @@ jobs:
             echo TYPEORM_HOST=$TYPEORM_HOST >> ~/project/backend/.env
             cd backend
             # npm install > /dev/null
-            npm run build > /dev/null
+            # npm run build > /dev/null
             npm run migrations >> migrations_dump.txt
             cat migrations_dump.txt
       - persist_to_workspace:
