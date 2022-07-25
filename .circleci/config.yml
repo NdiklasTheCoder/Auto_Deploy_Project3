@@ -177,7 +177,7 @@ jobs:
               --template-file .circleci/files/backend.yml \
               --tags project=Udapeople-${CIRCLE_WORKFLOW_ID:0:6} \
               --stack-name Udapeople-backend-${CIRCLE_WORKFLOW_ID:0:6} \
-              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:6}"  
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:6} 
               
               
                
@@ -188,31 +188,47 @@ jobs:
               --template-file .circleci/files/frontend.yml \
               --tags project=Udapeople-${CIRCLE_WORKFLOW_ID:0:6} \
               --stack-name Udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:6} \
-              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:6}"
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:6}
 
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            echo "[web]" > .circleci/ansible/inventory.txt
-            
-            aws ec2 describe-instances \
+            echo $(aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:project,Values=udapeople-${CIRCLE_WORKFLOW_ID:0:6}" \
-              --output text >> .circleci/ansible/inventory.txt
-            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" \
-              --request PUT \
-              --data `aws ec2 describe-instances \
-                --query 'Reservations[*].Instances[*].PublicIpAddress' \
-                --filters "Name=tag:project,Values=udapeople-${CIRCLE_WORKFLOW_ID:0:6}" \
-                --output text` \
-              https://api.memstash.io/values/UdapeopleDns
-              echo URL: https://api.memstash.io/values/UdapeopleDns
-              echo Token: ${CIRCLE_WORKFLOW_ID}
-      
+            --filters Name=tag:aws:cloudformation:stack-name,Values=Udapeople-backend-${CIRCLE_WORKFLOW_ID:0:6} \
+            --output text) >> ~/project/.circleci/ansible/inventory.txt
+            cat ~/project/.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
+      # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}
+
+      # - run:
+      #     name: Add back-end ip to ansible inventory
+      #     command: |
+      #       echo "[web]" > .circleci/ansible/inventory.txt
+            
+      #       aws ec2 describe-instances \
+      #       --query 'Reservations[*].Instances[*].PublicIpAddress' \
+      #         --filters "Name=tag:project,Values=udapeople-${CIRCLE_WORKFLOW_ID:0:6}" \
+      #         --output text >> .circleci/ansible/inventory.txt
+      #       curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" \
+      #         --request PUT \
+      #         --data `aws ec2 describe-instances \
+      #           --query 'Reservations[*].Instances[*].PublicIpAddress' \
+      #           --filters "Name=tag:project,Values=udapeople-${CIRCLE_WORKFLOW_ID:0:6}" \
+      #           --output text` \
+      #         https://api.memstash.io/values/UdapeopleDns
+      #         echo URL: https://api.memstash.io/values/UdapeopleDns
+      #         echo Token: ${CIRCLE_WORKFLOW_ID}
+      
+      # - persist_to_workspace:
+      #     root: ~/
+      #     paths:
+      #       - project/.circleci/ansible/inventory.txt
 
       # - revert-migrations
       # - destroy-environment
