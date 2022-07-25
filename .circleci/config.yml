@@ -177,7 +177,7 @@ jobs:
               --template-file .circleci/files/backend.yml \
               --tags project=Udapeople-${CIRCLE_WORKFLOW_ID:0:6} \
               --stack-name Udapeople-backend-${CIRCLE_WORKFLOW_ID:0:6} \
-              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:6} 
+              --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:6} 
               
               
                
@@ -188,7 +188,7 @@ jobs:
               --template-file .circleci/files/frontend.yml \
               --tags project=Udapeople-${CIRCLE_WORKFLOW_ID:0:6} \
               --stack-name Udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:6} \
-              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:6}
+              --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:6}
 
       - run:
           name: Add back-end ip to ansible inventory
