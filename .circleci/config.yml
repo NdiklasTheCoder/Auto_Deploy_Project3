@@ -205,7 +205,7 @@ jobs:
             - project/.circleci/ansible/inventory.txt
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
-          WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}
+          # WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}
 
       # - run:
       #     name: Add back-end ip to ansible inventory
