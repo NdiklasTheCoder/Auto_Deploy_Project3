@@ -43,19 +43,19 @@ commands:
           when: on_fail
           command: |
 
-            aws s3 rm s3://udapeople-$(<<parameters.WorkflowId>>:0:5) --recursive
-            aws cloudformation delete-stack \
-              --stack-name starter-frontend-<<parameters.WorkflowId>>
-            aws cloudformation delete-stack \
-              --stack-name udapeople-backend-<<parameters.WorkflowId>>
-            aws s3 rm s3://udapeople-<<parameters.WorkflowId>> --recursive
-            aws cloudformation delete-stack \
-              --stack-name udapeople-frontend-<<parameters.WorkflowId>>
+            # aws s3 rm s3://udapeople-$(<<parameters.WorkflowId>>:0:5) --recursive
+            # aws cloudformation delete-stack \
+            #   --stack-name starter-frontend-<<parameters.WorkflowId>>
+            # aws cloudformation delete-stack \
+            #   --stack-name udapeople-backend-<<parameters.WorkflowId>>
+            # aws s3 rm s3://udapeople-<<parameters.WorkflowId>> --recursive
+            # aws cloudformation delete-stack \
+            #   --stack-name udapeople-frontend-<<parameters.WorkflowId>>
 
-            # aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:6} --region=$AWS_REGION
-            # aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID:0:6} --force --region=$AWS_REGION
-            # aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:6} --region=$AWS_REGION
-            # aws cloudformation delete-stack --stack-name udapeople-cloudfront --region=$AWS_REGION
+            aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:6} --region=$AWS_REGION
+            aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID:0:6} --force --region=$AWS_REGION
+            aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:6} --region=$AWS_REGION
+            aws cloudformation delete-stack --stack-name udapeople-cloudfront --region=$AWS_REGION
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow. 
