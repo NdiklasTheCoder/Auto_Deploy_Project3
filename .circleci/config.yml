@@ -321,7 +321,7 @@ jobs:
             echo TYPEORM_HOST=$TYPEORM_HOST >> ~/project/backend/.env
             cd backend
             # npm install > /dev/null
-            # npm run build > /dev/null
+            npm run build > /dev/null
             npm run migrations >> migrations_dump.txt
             cat migrations_dump.txt
       - persist_to_workspace:
