@@ -43,21 +43,10 @@ commands:
           when: on_fail
           command: |
             
-            echo "Destroying environment: << parameters.WorkflowId >>"
-            aws cloudformation delete-stack \
-              --stack-name prometheus-<<parameters.WorkflowId>>
-            aws cloudformation delete-stack \
-              --stack-name cloudfront-<<parameters.WorkflowId>>
-            aws cloudformation delete-stack \
-              --stack-name database-<<parameters.WorkflowId>>
-            aws s3 rm s3://udapeople-$(<<parameters.WorkflowId>>:0:5) --recursive
-            aws cloudformation delete-stack \
-              --stack-name starter-frontend-<<parameters.WorkflowId>>
-            aws cloudformation delete-stack \
-              --stack-name udapeople-backend-<<parameters.WorkflowId>>
-            aws s3 rm s3://udapeople-<<parameters.WorkflowId>> --recursive
-            aws cloudformation delete-stack \
-              --stack-name udapeople-frontend-<<parameters.WorkflowId>>
+            aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:6} --region=$AWS_REGION
+            aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID:0:6} --force --region=$AWS_REGION
+            aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:6} --region=$AWS_REGION
+            aws cloudformation delete-stack --stack-name udapeople-cloudfront --region=$AWS_REGION
 
 
 
@@ -217,9 +206,9 @@ jobs:
           command: |
             echo $(aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:6} \
-            --output text) >> .circleci/ansible/inventory.txt
-            cat .circleci/ansible/inventory.txt
+            --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+            --output text) >> ~/project/.circleci/ansible/inventory.txt
+            cat ~/project/.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -269,29 +258,29 @@ jobs:
       # attach workspace
       - attach_workspace:
           at: ~/
-      - restore_cache:
-          keys: [backend-build]
+      # - restore_cache:
+      #     keys: [backend-build]
       - run:
           name: Configure server
           command: |
             # add environment variables to server
-            echo NODE_ENV=production > backend/.env
-            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> backend/.env
-            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
-            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> backend/.env
-            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> backend/.env
-            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> backend/.env
-            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
-            echo TYPEORM_PORT=$TYPEORM_PORT >> backend/.env
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> backend/.env
-            cat backend/.env
-            cd .circleci/ansible
+            echo NODE_ENV=production > ~/project/backend/.env
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> ~/project/backend/.env
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ~/project/backend/.env
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> ~/project/backend/.env
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> ~/project/backend/.env
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> ~/project/backend/.env
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ~/project/backend/.env
+            echo TYPEORM_PORT=$TYPEORM_PORT >> ~/project/backend/.env
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ~/project/backend/.env
+            cat ~/project/backend/.env
+            cd ~/project/.circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
 
       - persist_to_workspace:
           root: ~/
           paths:
-            - backend
+            - project/backend
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}
@@ -300,54 +289,54 @@ jobs:
       # - destroy-environment
 
 
-  run-migrations:
-    docker:
-      # Docker image here that supports NodeJS
-      # - image: python:3.10-alpine3.16
-      - image: circleci/node:13.8.0
-      # - image: amazon/aws-cli
-    steps:
-      # Checkout code from git
-      - checkout
-      - run:
-          name: Install deps
-          command: |
-            # yum install tar gzip npm nodejs curl -y
-            sudo apt install -y tar gzip curl
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip -qq awscliv2.zip
-            sudo ./aws/install
-            # apk add --update --no-cache tar gzip nodejs npm aws-cli curl
-      # - restore_cache:
-      #     keys: [backend-build]
-      - attach_workspace:
-          at: ~/
-      - run:
-          name: Run migrations
-          command: |
-            # Get DB host from AWS and add to env
-            # export TYPEORM_HOST=$(aws cloudformation list-exports --query "Exports[?Name==\`EndpointAddress-${CIRCLE_WORKFLOW_ID:0:7}\`].Value" --output text)
-            # echo $TYPEORM_HOST
-            # echo TYPEORM_HOST=$TYPEORM_HOST >> ~/project/backend/.env
-            cd backend
-            # npm install > /dev/null
-            # npm run build > /dev/null
-            npm run migrations >> migrations_dump.txt
-            cat migrations_dump.txt
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - backend
-      - run:
-          name: Send migration results to kvdb
-          command: |
-            if grep -q "has been executed successfully" ~/project/backend/migrations_dump.txt
-            then
-              curl --insecure https://kvdb.io/2gjtQbvRrTohTvh5BGoWE9/migration_${CIRCLE_WORKFLOW_ID:0:6} -d '1'
-            fi
-      # Here's where you will add some code to rollback on failure
-      - destroy-environment:
-          WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}  
+  # run-migrations:
+  #   docker:
+  #     # Docker image here that supports NodeJS
+  #     # - image: python:3.10-alpine3.16
+  #     - image: circleci/node:13.8.0
+  #     # - image: amazon/aws-cli
+  #   steps:
+  #     # Checkout code from git
+  #     - checkout
+  #     - run:
+  #         name: Install deps
+  #         command: |
+  #           # yum install tar gzip npm nodejs curl -y
+  #           sudo apt install -y tar gzip curl
+  #           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  #           unzip -qq awscliv2.zip
+  #           sudo ./aws/install
+  #           # apk add --update --no-cache tar gzip nodejs npm aws-cli curl
+  #     # - restore_cache:
+  #     #     keys: [backend-build]
+  #     - attach_workspace:
+  #         at: ~/
+  #     - run:
+  #         name: Run migrations
+  #         command: |
+  #           # Get DB host from AWS and add to env
+  #           # export TYPEORM_HOST=$(aws cloudformation list-exports --query "Exports[?Name==\`EndpointAddress-${CIRCLE_WORKFLOW_ID:0:7}\`].Value" --output text)
+  #           # echo $TYPEORM_HOST
+  #           # echo TYPEORM_HOST=$TYPEORM_HOST >> ~/project/backend/.env
+  #           cd backend
+  #           # npm install > /dev/null
+  #           # npm run build > /dev/null
+  #           npm run migrations >> migrations_dump.txt
+  #           cat migrations_dump.txt
+  #     - persist_to_workspace:
+  #         root: ~/
+  #         paths:
+  #           - backend
+  #     - run:
+  #         name: Send migration results to kvdb
+  #         command: |
+  #           if grep -q "has been executed successfully" ~/project/backend/migrations_dump.txt
+  #           then
+  #             curl --insecure https://kvdb.io/2gjtQbvRrTohTvh5BGoWE9/migration_${CIRCLE_WORKFLOW_ID:0:6} -d '1'
+  #           fi
+  #     # Here's where you will add some code to rollback on failure
+  #     - destroy-environment:
+  #         WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}  
 
 #   deploy-frontend:
 #     docker:
@@ -465,8 +454,8 @@ workflows:
           #     only: [test-feature-branch]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
       # - deploy-frontend:
       #     requires: [run-migrations]
       # - deploy-backend:
