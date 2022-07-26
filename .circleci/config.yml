@@ -289,54 +289,54 @@ jobs:
       # - destroy-environment
 
 
-  # run-migrations:
-  #   docker:
-  #     # Docker image here that supports NodeJS
-  #     # - image: python:3.10-alpine3.16
-  #     - image: circleci/node:13.8.0
-  #     # - image: amazon/aws-cli
-  #   steps:
-  #     # Checkout code from git
-  #     - checkout
-  #     - run:
-  #         name: Install deps
-  #         command: |
-  #           # yum install tar gzip npm nodejs curl -y
-  #           sudo apt install -y tar gzip curl
-  #           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-  #           unzip -qq awscliv2.zip
-  #           sudo ./aws/install
-  #           # apk add --update --no-cache tar gzip nodejs npm aws-cli curl
-  #     # - restore_cache:
-  #     #     keys: [backend-build]
-  #     - attach_workspace:
-  #         at: ~/
-  #     - run:
-  #         name: Run migrations
-  #         command: |
-  #           # Get DB host from AWS and add to env
-  #           # export TYPEORM_HOST=$(aws cloudformation list-exports --query "Exports[?Name==\`EndpointAddress-${CIRCLE_WORKFLOW_ID:0:7}\`].Value" --output text)
-  #           # echo $TYPEORM_HOST
-  #           # echo TYPEORM_HOST=$TYPEORM_HOST >> ~/project/backend/.env
-  #           cd backend
-  #           # npm install > /dev/null
-  #           # npm run build > /dev/null
-  #           npm run migrations >> migrations_dump.txt
-  #           cat migrations_dump.txt
-  #     - persist_to_workspace:
-  #         root: ~/
-  #         paths:
-  #           - backend
-  #     - run:
-  #         name: Send migration results to kvdb
-  #         command: |
-  #           if grep -q "has been executed successfully" ~/project/backend/migrations_dump.txt
-  #           then
-  #             curl --insecure https://kvdb.io/2gjtQbvRrTohTvh5BGoWE9/migration_${CIRCLE_WORKFLOW_ID:0:6} -d '1'
-  #           fi
-  #     # Here's where you will add some code to rollback on failure
-  #     - destroy-environment:
-  #         WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}  
+  run-migrations:
+    docker:
+      # Docker image here that supports NodeJS
+      # - image: python:3.10-alpine3.16
+      - image: circleci/node:13.8.0
+      # - image: amazon/aws-cli
+    steps:
+      # Checkout code from git
+      - checkout
+      - run:
+          name: Install deps
+          command: |
+            # yum install tar gzip npm nodejs curl -y
+            sudo apt install -y tar gzip curl
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip -qq awscliv2.zip
+            sudo ./aws/install
+            # apk add --update --no-cache tar gzip nodejs npm aws-cli curl
+      # - restore_cache:
+      #     keys: [backend-build]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Run migrations
+          command: |
+            # Get DB host from AWS and add to env
+            # export TYPEORM_HOST=$(aws cloudformation list-exports --query "Exports[?Name==\`EndpointAddress-${CIRCLE_WORKFLOW_ID:0:7}\`].Value" --output text)
+            # echo $TYPEORM_HOST
+            # echo TYPEORM_HOST=$TYPEORM_HOST >> ~/project/backend/.env
+            cd backend
+            npm install 
+            npm run build
+            npm run migrations >> migrations_dump.txt
+            cat migrations_dump.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - backend
+      - run:
+          name: Send migration results to kvdb
+          command: |
+            if grep -q "has been executed successfully" ~/project/backend/migrations_dump.txt
+            then
+              curl --insecure https://kvdb.io/2gjtQbvRrTohTvh5BGoWE9/migration_${CIRCLE_WORKFLOW_ID:0:6} -d '1'
+            fi
+      # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}  
 
 #   deploy-frontend:
 #     docker:
@@ -454,8 +454,8 @@ workflows:
           #     only: [test-feature-branch]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
       # - deploy-frontend:
       #     requires: [run-migrations]
       # - deploy-backend:
