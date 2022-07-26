@@ -310,8 +310,8 @@ jobs:
             # apk add --update --no-cache tar gzip nodejs npm aws-cli curl
       - restore_cache:
           keys: [backend-build]
-      - attach_workspace:
-          at: ~/
+      # - attach_workspace:
+      #     at: ~/
       - run:
           name: Run migrations
           command: |
@@ -322,12 +322,12 @@ jobs:
             cd backend
             # npm install
             # npm run build
-            npm run migrations >> migrations_dump.txt
-            cat migrations_dump.txt
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - backend
+            npm run migrations >> migrations.txt
+            # cat migrations_dump.txt
+      # - persist_to_workspace:
+      #     root: ~/
+      #     paths:
+      #       - backend
       - run:
           name: Send migration results to kvdb
           command: |
