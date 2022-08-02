@@ -250,7 +250,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: [aa:db:f5:f8:73:fc:7c:99:7d:c4:0b:d6:2f:97:ad:f5]
+          fingerprints: [64:af:20:32:af:2e:b7:78:1f:66:d5:22:e1:2c:92:85]
       - run:
           name: Install dependencies
           command: |
@@ -380,7 +380,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: [aa:db:f5:f8:73:fc:7c:99:7d:c4:0b:d6:2f:97:ad:f5]
+          fingerprints: [64:af:20:32:af:2e:b7:78:1f:66:d5:22:e1:2c:92:85]
       - run:
           name: Install dependencies
           command: |
@@ -438,35 +438,35 @@ jobs:
       - destroy-environment:
           WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}
       - revert-migrations:
-          WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6} 
+          WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}
 
-  # cloudfront-update:
-  #   docker:
-  #     - image: circleci/node:13.8.0
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           sudo apt install -y tar gzip curl
-  #           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-  #           unzip -qq awscliv2.zip
-  #           sudo ./aws/install
-  #     - run:
-  #         name: Update cloudfront distribution
-  #         command: |
-  #           export OldWorkflowID=$(aws cloudformation list-exports \
-  #           --query "Exports[?Name==\`WorkflowID\`].Value" \
-  #           --no-paginate --output text)
-  #           aws cloudformation deploy \
-  #           --template-file .circleci/files/cloudfront.yml \
-  #           --stack-name InitialStack \
-  #           --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:6} \
-  #           --tags project=udapeople
-  #     - destroy-environment:
-  #         WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}
-  #     - revert-migrations:
-  #         WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}
+  cloudfront-update:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt install -y tar gzip curl
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip -qq awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            export OldWorkflowID=$(aws cloudformation list-exports \
+            --query "Exports[?Name==\`WorkflowID\`].Value" \
+            --no-paginate --output text)
+            aws cloudformation deploy \
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name InitialStack \
+            --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:6} \
+            --tags project=udapeople
+      - destroy-environment:
+          WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}
+      - revert-migrations:
+          WorkflowId: ${CIRCLE_WORKFLOW_ID:0:6}
 
 #   cleanup:
 #     docker:
